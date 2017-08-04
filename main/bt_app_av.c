@@ -59,13 +59,12 @@ void bt_app_a2d_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param)
 void bt_app_a2d_data_cb(const uint8_t *data, uint32_t len)
 {
     // swap left/right channels
-    int16_t* ptr = (int16_t*)data;
-    uint32_t count = (len >> 1) - 1;
-    for (uint32_t i = 0; i < count; i += 2)
+    uint32_t* ptr = (uint32_t*)data;
+    uint32_t count = (len >> 2);
+    for (uint32_t i = 0; i < count; ++i)
     {
-        int16_t tmp = (int16_t)ptr[i];
-        ptr[i] = ptr[i + 1];
-        ptr[i + 1] = tmp;
+        uint32_t tmp = ptr[i];
+        ptr[i] = (tmp << 16) | (tmp >> 16);
     }
 
     i2s_write_bytes(0, (const char *)data, len, portMAX_DELAY);
