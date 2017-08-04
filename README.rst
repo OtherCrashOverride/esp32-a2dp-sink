@@ -16,9 +16,9 @@ For the I2S codec, pick whatever chip or board works for you; this code was writ
 +-----------+--------------+
 | ESP pin   | I2S signal   |
 +===========+==============+
-| GPIO22    | LRCK         |
+| GPIO22    | DATA         |
 +-----------+--------------+
-| GPIO25    | DATA         |
+| GPIO25    | LRCK         |
 +-----------+--------------+
 | GPIO26    | BCK          |
 +-----------+--------------+
