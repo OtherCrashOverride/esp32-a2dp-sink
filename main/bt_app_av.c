@@ -58,6 +58,16 @@ void bt_app_a2d_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param)
 
 void bt_app_a2d_data_cb(const uint8_t *data, uint32_t len)
 {
+    // swap left/right channels
+    int16_t* ptr = (int16_t*)data;
+    uint32_t count = (len >> 1) - 1;
+    for (uint32_t i = 0; i < count; i += 2)
+    {
+        int16_t tmp = (int16_t)ptr[i];
+        ptr[i] = ptr[i + 1];
+        ptr[i + 1] = tmp;
+    }
+
     i2s_write_bytes(0, (const char *)data, len, portMAX_DELAY);
     if (++m_pkt_cnt % 100 == 0) {
         ESP_LOGE(BT_AV_TAG, "audio data pkt cnt %u", m_pkt_cnt);
@@ -94,6 +104,11 @@ static void bt_av_hdl_a2d_evt(uint16_t event, void *p_param)
         m_audio_state = a2d->audio_stat.state;
         if (ESP_A2D_AUDIO_STATE_STARTED == a2d->audio_stat.state) {
             m_pkt_cnt = 0;
+            i2s_zero_dma_buffer(I2S_NUM_0);
+            i2s_start(I2S_NUM_0);
+        }
+        else {
+            i2s_stop(I2S_NUM_0);
         }
         break;
     }
@@ -114,7 +129,7 @@ static void bt_av_hdl_a2d_evt(uint16_t event, void *p_param)
             i2s_set_clk(0, sample_rate, 16, 2);
             // MediaControl *ctrl = (MediaControl *)local_service->Based.instance;
             // CodecEvent evt;
-            
+
             // ctrl->decoderRequestSetup(ctrl, (void *)&evt);
             // temporarily hardcoded the PCM configuaration
             ESP_LOGI(BT_AV_TAG, "configure audio player %x-%x-%x-%x\n",
